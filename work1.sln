@@ -1,0 +1,323 @@
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    // Список товаров в автомате
+    static List<Product> products = new List<Product>();
+
+    // Баланс пользователя
+    static decimal userMoney = 0;
+
+    // Общая выручка автомата
+    static decimal machineMoney = 0;
+
+    // Пароль для администратора
+    static string password = "1234";
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine("Добро пожаловать в вендинговый автомат!");
+
+        products.Add(new Product("Добрый кола", 80, 5));
+        products.Add(new Product("Чипсы 'Русская картошка'", 50, 3));
+        products.Add(new Product("Шоколад 'Аленка'", 60, 4));
+        products.Add(new Product("Вода 'Святой источник'", 40, 6));
+
+        while (true)
+        {
+            ShowMainMenu();
+        }
+    }
+
+    static void ShowMainMenu()
+    {
+        Console.WriteLine("\n*** ГЛАВНОЕ МЕНЮ ***");
+        Console.WriteLine("1 - Посмотреть товары");
+        Console.WriteLine("2 - Внести деньги");
+        Console.WriteLine("3 - Купить товар");
+        Console.WriteLine("4 - Вернуть сдачу");
+        Console.WriteLine("5 - Режим администратора");
+        Console.WriteLine("0 - Выйти");
+        Console.Write("Ваш выбор: ");
+
+        string? choice = Console.ReadLine(); 
+
+        if (choice == "1")
+        {
+            ShowProducts();
+        }
+        else if (choice == "2")
+        {
+            AddMoney();
+        }
+        else if (choice == "3")
+        {
+            BuyProduct();
+        }
+        else if (choice == "4")
+        {
+            ReturnMoney();
+        }
+        else if (choice == "5")
+        {
+            AdminMode();
+        }
+        else if (choice == "0")
+        {
+            ReturnMoney();
+            Console.WriteLine("До свидания!");
+            Environment.Exit(0);
+        }
+        else
+        {
+            Console.WriteLine("Ошибка. Попробуйте еще раз.");
+        }
+    }
+
+    static void ShowProducts()
+    {
+        Console.WriteLine("\n--- ТОВАРЫ В АВТОМАТЕ ---");
+
+        for (int i = 0; i < products.Count; i++)
+        {
+            Product product = products[i];
+            Console.WriteLine($"{i + 1}. {product.Name} - {product.Price} руб. (осталось: {product.Quantity})");
+        }
+
+        Console.WriteLine($"Ваш баланс: {userMoney} руб.");
+    }
+
+    static void AddMoney()
+    {
+        Console.Write("Какую сумму денег хотите внести? (руб.): ");
+        string? input = Console.ReadLine(); 
+
+        if (decimal.TryParse(input, out decimal money))
+        {
+            if (money > 0)
+            {
+                userMoney += money;
+                Console.WriteLine($"Вы внесли {money} руб.");
+                Console.WriteLine($"Ваш баланс {userMoney} руб.");
+            }
+            else
+            {
+                Console.WriteLine("Сумма должна быть больше нуля");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Это не похоже на сумму денег! Введите число.");
+        }
+    }
+
+    static void BuyProduct()
+    {
+        ShowProducts();
+
+        if (products.Count == 0)
+        {
+            Console.WriteLine("В автомате нет товаров");
+            return;
+        }
+
+        Console.Write("Введите номер товара: ");
+        string? input = Console.ReadLine();
+
+        if (int.TryParse(input, out int choice))
+        {
+            if (choice >= 1 && choice <= products.Count)
+            {
+                Product selectedProduct = products[choice - 1];
+
+                if (selectedProduct.Quantity == 0)
+                {
+                    Console.WriteLine("Этот товар закончился");
+                    return;
+                }
+
+                if (userMoney >= selectedProduct.Price)
+                {
+                    selectedProduct.Quantity--;
+                    userMoney -= selectedProduct.Price;
+                    machineMoney += selectedProduct.Price;
+
+                    Console.WriteLine($"Вы купили {selectedProduct.Name}!");
+                    Console.WriteLine($"Осталось денег: {userMoney} руб.");
+if (userMoney > 0)
+                    {
+                        Console.Write("Хотите вернуть сдачу? (да/нет): ");
+                        string? answer = Console.ReadLine()?.ToLower(); 
+                        if (answer == "да" || answer == "д")
+                        {
+                            ReturnMoney();
+                        }
+                    }
+                }
+                else
+                {
+                    decimal needed = selectedProduct.Price - userMoney;
+                    Console.WriteLine($"Недостаточно средств. Нужно еще {needed} руб.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Товара с таким номером нет!");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Введите номер товара");
+        }
+    }
+
+    static void ReturnMoney()
+    {
+        if (userMoney > 0)
+        {
+            Console.WriteLine($"Вам возвращено {userMoney} руб.");
+            userMoney = 0;
+        }
+        else
+        {
+            Console.WriteLine("У вас нет денег для возврата.");
+        }
+    }
+
+    static void AdminMode()
+    {
+        Console.Write("Введите пароль: ");
+        string? inputPassword = Console.ReadLine();
+
+        if (inputPassword != password)
+        {
+            Console.WriteLine("Неверный пароль");
+            return;
+        }
+
+        Console.WriteLine("\n*** РЕЖИМ АДМИНИСТРАТОРА ***");
+
+        while (true)
+        {
+            Console.WriteLine("\n1 - Пополнить товар");
+            Console.WriteLine("2 - Добавить новый товар");
+            Console.WriteLine("3 - Посмотреть выручку");
+            Console.WriteLine("4 - Забрать деньги из автомата");
+            Console.WriteLine("5 - Вернуться в главное меню");
+            Console.Write("Ваш выбор: ");
+
+            string? choice = Console.ReadLine(); 
+
+            if (choice == "1")
+            {
+                RestockProduct();
+            }
+            else if (choice == "2")
+            {
+                AddNewProduct();
+            }
+            else if (choice == "3")
+            {
+                Console.WriteLine($"Общая выручка: {machineMoney} руб.");
+            }
+            else if (choice == "4")
+            {
+                CollectMoney();
+            }
+            else if (choice == "5")
+            {
+                break;
+            }
+            else
+            {
+                Console.WriteLine("Не понял ваш выбор.");
+            }
+        }
+    }
+
+    static void RestockProduct()
+    {
+        ShowProducts();
+        Console.Write("Выберите номер товара для пополнения: ");
+
+        string? input = Console.ReadLine(); 
+        if (int.TryParse(input, out int choice) && choice >= 1 && choice <= products.Count)
+        {
+            Console.Write("Сколько штук добавить?: ");
+            string? quantityInput = Console.ReadLine(); 
+            if (int.TryParse(quantityInput, out int quantity) && quantity > 0)
+            {
+                products[choice - 1].Quantity += quantity;
+                Console.WriteLine($"Товар пополнен! Теперь: {products[choice - 1].Quantity} штук");
+            }
+            else
+            {
+                Console.WriteLine("Нужно ввести положительное число");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Неверный номер товара!");
+        }
+    }
+
+    static void AddNewProduct()
+    {
+        Console.Write("Введите название товара: ");
+        string? name = Console.ReadLine(); 
+
+        if (string.IsNullOrEmpty(name))
+        {
+            Console.WriteLine("Название товара не может быть пустым!");
+            return;
+        }
+Console.Write("Введите цену товара: ");
+        string? priceInput = Console.ReadLine(); 
+        if (decimal.TryParse(priceInput, out decimal price) && price > 0)
+        {
+            Console.Write("Введите количество: ");
+            string? quantityInput = Console.ReadLine(); 
+            if (int.TryParse(quantityInput, out int quantity) && quantity > 0)
+            {
+                products.Add(new Product(name, price, quantity));
+                Console.WriteLine($"Товар '{name}' добавлен!");
+            }
+            else
+            {
+                Console.WriteLine("Неверное количество");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Неверная цена");
+        }
+    }
+
+    static void CollectMoney()
+    {
+        if (machineMoney > 0)
+        {
+            Console.WriteLine($"Забрано {machineMoney} руб. из автомата");
+            machineMoney = 0;
+        }
+        else
+        {
+            Console.WriteLine("В автомате нет денег!");
+        }
+    }
+}
+
+class Product
+{
+    public string Name;
+    public decimal Price;
+    public int Quantity;
+
+    public Product(string name, decimal price, int quantity)
+    {
+        Name = name;
+        Price = price;
+        Quantity = quantity;
+    }
+}
